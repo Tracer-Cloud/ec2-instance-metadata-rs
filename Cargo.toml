@@ -10,4 +10,4 @@ license = "MIT"
 
 [dependencies]
 json = "0.12"
-ureq = "1.4"
+ureq = "3.0.12"
