@@ -1,4 +1,4 @@
-extern crate json;
+use serde_json::Value;
 extern crate ureq;
 
 #[derive(Clone, Copy)]
@@ -36,8 +36,13 @@ impl Into<&'static str> for MetadataUrls {
 }
 
 fn identity_credentials_to_account_id(ident_creds: &str) -> Result<String> {
-    let parsed = json::parse(ident_creds)?;
-    Ok(parsed["AccountId"].to_string())
+    let parsed: Value =
+        serde_json::from_str(ident_creds).map_err(|e| Error::JsonError(format!("{:?}", e)))?;
+
+    parsed["AccountId"]
+        .as_str()
+        .map(|s| s.to_string())
+        .ok_or_else(|| Error::JsonError("Missing AccountId field".into()))
 }
 
 fn availability_zone_to_region(availability_zone: &str) -> Result<&'static str> {
@@ -97,8 +102,8 @@ impl From<std::io::Error> for Error {
     }
 }
 
-impl From<json::Error> for Error {
-    fn from(error: json::Error) -> Error {
+impl From<serde_json::Error> for Error {
+    fn from(error: serde_json::Error) -> Error {
         Error::JsonError(format!("{:?}", error))
     }
 }
